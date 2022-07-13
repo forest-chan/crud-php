@@ -1,0 +1,12 @@
+.logo {
+  flex-basis: 15%;
+  margin: 0;
+}
+.logo img {
+  transition: transform 0.5s ease;
+  overflow: hidden;
+}
+
+.logo img:hover {
+  transform: scale(1.1);
+}
