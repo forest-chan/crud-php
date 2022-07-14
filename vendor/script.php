@@ -1,6 +1,8 @@
 <?php
 
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
 
 require_once 'authorization.php';
 require_once 'db.php';
@@ -54,38 +56,39 @@ if (!empty($_POST)) {
         && array_key_exists('name', $_POST) && array_key_exists('password', $_POST)
     ) {
 
-        if (isAuthorized() && isSuperUser()) {
+        if (isAuthorized()) {
 
             extract($_POST);
 
+            //id should be the last field
             $form = [
-                'id' => $id,
                 'name' => $name,
                 'email' => $email,
                 'password' => $password,
             ];
 
-            $prevUserInfo = getUserFromDbById($db, $config, $id);
+            $prevUserInfo = getUserFromDb($db, $config, ['id' => $id]);
 
-            if($prevUserInfo['email'] == $email){
+            if ($prevUserInfo['email'] == $email) {
                 unset($form['email']);
             }
-            if(empty($form['password'])){
+            if (empty($form['password'])) {
                 unset($form['password']);
             }
 
             $errors = validateUpdateUserForm($form, $config);
 
-            if(isset($form['password'])){
+            if (isset($form['password'])) {
                 $form['password'] = md5($form['password']);
-            } else{
+            } else {
                 $form['password'] = $prevUserInfo['password'];
             }
-            if(!isset($form['email'])){
+            if (!isset($form['email'])) {
                 $form['email'] = $prevUserInfo['email'];
             }
 
             if (empty($errors)) {
+                $form['id'] = $id;
                 updateUserIntoDb($db, $config, $form);
                 header('location: /vendor/index.php' . '?page=' . $currentPage);
             } else {
@@ -104,18 +107,17 @@ if (!empty($_POST)) {
             header('location: /vendor/401.php');
         } else {
             $id = $_GET['upd'];
-            $user = getUserFromDbById($db, $config, $id);
+            $user = getUserFromDb($db, $config, ['id' => $id]);
             $_SESSION['userInfo'] = $user;
             header('location: /vendor/update.php');
         }
     } elseif (array_key_exists('view', $_GET)) {
-
         if (!isAuthorized()) {
             header('location: /vendor/401.php');
         } else {
             $id = $_GET['view'];
-            $userToView = getUserFromDbById($db, $config, $id);
-            $_SESSION['userToView'] = $userToView;
+            $_SESSION['userToView'] = $id;
+
             header('location: /vendor/view.php');
         }
     } elseif (array_key_exists('del', $_GET)) {
@@ -125,7 +127,13 @@ if (!empty($_POST)) {
         } else {
             $id = $_GET['del'];
             if ($id != $_SESSION['id']) {
-                deleteUserFromDb($db, $config, $id);
+
+                $fieldsToUpdate = [
+                    'is_deleted' => 1,
+                    'id' => $id
+                ];
+                updateUserIntoDb($db, $config, $fieldsToUpdate);
+                // deleteUserFromDb($db, $config, $id);
             }
             header('location: /vendor/index.php' . '?page=' . $currentPage);
         }

@@ -61,7 +61,7 @@ if (isAuthorized()) {
                     </div>
                     <div class="form-group">
                         <div class="d-flex justify-content-center align-items-center container">
-                            <input type="submit" name="signIn" value="Sing in" class="btn btn-outline-dark">
+                            <input type="submit" name="signIn" value="Sign in" class="btn btn-outline-dark">
                         </div>
                     </div>
                     <div class="form-group">

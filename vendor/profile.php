@@ -12,7 +12,9 @@ if (!isAuthorized()) {
 
 $id = $_SESSION['id'];
 $db = connectToDb($config);
-$user = getUserFromDbById($db, $config, $id);
+$user = getUserFromDb($db, $config, ['id' => $id]);
+
+$_SESSION['userInfo'] = $user;
 
 ?>
 
@@ -24,7 +26,7 @@ $user = getUserFromDbById($db, $config, $id);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My profile</title>
-    <link rel="stylesheet" type="text/css" href="../css/main.css">
+    <link rel="stylesheet" type="text/css" href="../css/profile.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 </head>
 
@@ -41,25 +43,32 @@ $user = getUserFromDbById($db, $config, $id);
                                         <div class="logo">
                                             <input name="avatar" type="file" id="input_id" hidden>
                                             <label for="input_id">
-                                                <img src="../avatars/<?php echo $user['avatar']; ?>" alt="Avatar" class="img-fluid my-5" style="width: 90px;" />
+                                                <img src="../avatars/<?php echo $user['avatar']; ?>" alt="Avatar" class="img-fluid my-3" style="width: 90px;" />
                                             </label>
                                         </div>
                                     <?php } else { ?>
                                         <div class="logo">
                                             <input name="avatar" type="file" id="input_id" hidden>
                                             <label for="input_id">
-                                                <img src="../avatars/default.png" alt="Avatar" class="img-fluid my-5" style="width: 90px;" />
+                                                <img src="../avatars/default.png" alt="Avatar" class="img-fluid my-3" style="width: 90px;" />
                                             </label>
                                         </div>
                                     <?php } ?>
-                                    <div class="mb-4">
-                                        <button type="submit" name="submit" class="btn btn-outline-dark" style="--bs-btn-padding-y: .50rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">
-                                            Change Avatar
+
+                                    <div class="mb-1">
+                                        <button type="submit" name="submit" class="btn btn-outline-dark" style="--bs-btn-padding-y: .50rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem; width: 80%">
+                                            Update my Avatar
                                         </button>
                                     </div>
-                                    <div class="mb-4">
-                                        <a href="./index.php?page=<?php echo $_SESSION['currentPage']; ?>" class="btn btn-outline-dark" style="--bs-btn-padding-y: .50rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;">Go back</a>
+                                    <div class="mb-1">
+                                        <a href="./update.php" class="btn btn-outline-dark" style="--bs-btn-padding-y: .50rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem; width: 80%">
+                                            Update my info
+                                        </a>
                                     </div>
+                                    <div class="mb-1">
+                                        <a href="./index.php?page=<?php echo $_SESSION['currentPage']; ?>" class="btn btn-outline-dark" style="--bs-btn-padding-y: .50rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem; width: 80%">Go back</a>
+                                    </div>
+
                                 </form>
                             </div>
                             <div class="col-md-8">

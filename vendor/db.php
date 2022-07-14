@@ -1,5 +1,6 @@
 <?php
 
+
 function connectToDb(array $config): PDO
 {
 
@@ -18,114 +19,44 @@ function connectToDb(array $config): PDO
     }
 }
 
+
 function insertUserIntoDb(PDO $db, array $config, array $userInfo)
 {
-    $sql = "INSERT INTO {$config['tablename']} VALUES (NULL,?,?,?,?,?,0)";
+    $sql = "INSERT INTO {$config['tablename']} VALUES (NULL,?,?,?,?,?,0, 'default.png')";
     $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($userInfo['email'], $userInfo['name'], $userInfo['password'], $userInfo['token'], $userInfo['status']));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        $db->rollBack();
-    }
+    $stmt->execute(array($userInfo['email'], $userInfo['name'], $userInfo['password'], $userInfo['token'], $userInfo['status']));
 }
 
-function updateUserIntoDb(PDO $db, array $config, array $userInfo)
+
+function updateUserIntoDb(PDO $db, array $config, array $fieldsToUpdate)
 {
-    $sql = "UPDATE {$config['tablename']} SET email=?, name=?, password=? WHERE id=?";
-    $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($userInfo['email'], $userInfo['name'], $userInfo['password'], $userInfo['id']));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        die;
-        $db->rollBack();
+    // id should be the last field!
+    // creating sql query string
+    $sql = "UPDATE `{$config['tablename']}` SET ";
+    foreach ($fieldsToUpdate as $key => $value) {
+        if($key!='id'){
+            $sql .= "`$key`=?, ";
+        }
     }
+    $sql = trim($sql, ', ') . ' WHERE `id`=?';
+
+    $stmt = $db->prepare($sql);
+    $stmt->execute(array_values($fieldsToUpdate));
 }
 
-function updateUserAvatarIntoDb(PDO $db, array $config, array $userInfo){
-    $sql = "UPDATE {$config['tablename']} SET avatar=? WHERE id=?";
-    $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($userInfo['avatar'], $userInfo['id']));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        die;
-        $db->rollBack();
-    }
-}
-
-function deleteUserFromDb(PDO $db, array $config, int $id)
+function getUserFromDb($db, $config, $fieldsToGet)
 {
-    $sql = "UPDATE {$config['tablename']} SET is_deleted=1 WHERE id=?";
-    $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($id));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        $db->rollBack();
+    // creating sql query string
+    $sql = "SELECT * FROM `{$config['tablename']}` WHERE ";
+    foreach ($fieldsToGet as $key => $value) {
+        $sql .= "`$key`=?and ";
     }
-}
+    $sql = trim($sql, 'and ');
 
-function getUserFromDbById(PDO $db, array $config, int $id)
-{
+    // preparing and execution sql query
     $user = [];
-    $sql = "SELECT * FROM {$config['tablename']} WHERE id=?";
     $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($id));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        $db->rollBack();
-    }
-
-
-    $user = $stmt->fetch(PDO::FETCH_LAZY);
-    $user = [
-        'id' => $user['id'],
-        'email' => $user['email'],
-        'name' => $user['name'],
-        'password' => $user['password'],
-        'token' => $user['token'],
-        'status' => $user['status'],
-        'is_deleted' =>$user['is_deleted'],
-        'avatar' => $user['avatar'],
-    ];
-
-
-    return $user;
-}
-
-function getUserFromDbByEmail(PDO $db, array $config, string $email)
-{
-    $user = [];
-    $sql = "SELECT * FROM {$config['tablename']} WHERE email=?";
-    $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($email));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        $db->rollBack();
-    }
-
+    $stmt->execute(array_values($fieldsToGet));
 
     if ($stmt->rowCount()) {
         $user = $stmt->fetch(PDO::FETCH_LAZY);
@@ -136,7 +67,7 @@ function getUserFromDbByEmail(PDO $db, array $config, string $email)
             'password' => $user['password'],
             'token' => $user['token'],
             'status' => $user['status'],
-            'is_deleted' =>$user['is_deleted'],
+            'is_deleted' => $user['is_deleted'],
             'avatar' => $user['avatar'],
         ];
     }
@@ -145,38 +76,6 @@ function getUserFromDbByEmail(PDO $db, array $config, string $email)
     return $user;
 }
 
-function getUserFromDbByLogin(PDO $db, array $config, $email, $password)
-{
-    $user = [];
-    $sql = "SELECT * FROM {$config['tablename']} WHERE `email`=? and `password`=?";
-    $stmt = $db->prepare($sql);
-
-    try {
-        $db->beginTransaction();
-        $stmt->execute(array($email, $password));
-        $db->commit();
-    } catch (PDOException $e) {
-        echo 'An error:' . $e->getMessage();
-        $db->rollBack();
-    }
-
-    if ($stmt->rowCount()) {
-        $user = $stmt->fetch(PDO::FETCH_LAZY);
-        $user = [
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'name' => $user['name'],
-            'password' => $user['password'],
-            'token' => $user['token'],
-            'status' => $user['status'],
-            'is_deleted' =>$user['is_deleted'],
-            'avatar' => $user['avatar'],
-        ];
-    }
-
-
-    return $user;
-}
 
 function getAllUsersFromDb(PDO $db, array $config)
 {
@@ -192,7 +91,7 @@ function getAllUsersFromDb(PDO $db, array $config)
             'password' => $user['password'],
             'token' => $user['token'],
             'status' => $user['status'],
-            'is_deleted' =>$user['is_deleted'],
+            'is_deleted' => $user['is_deleted'],
             'avatar' => $user['avatar'],
         ];
     }
@@ -201,11 +100,12 @@ function getAllUsersFromDb(PDO $db, array $config)
 }
 
 
-function getUsersPerPageFromDb(PDO $db, array $config, int $recordsOnPage, int $from){
+function getUsersPerPageFromDb(PDO $db, array $config, int $recordsOnPage, int $from)
+{
     $users = [];
-    $sql = "SELECT * FROM {$config['tablename']} WHERE id>0 AND is_deleted=0 LIMIT $from,$recordsOnPage";
+    $sql = "SELECT * FROM {$config['tablename']} WHERE (id>0 AND is_deleted=0) ORDER BY id DESC LIMIT $from,$recordsOnPage";
     $stmt = $db->query($sql);
-    
+
     while ($user = $stmt->fetch(PDO::FETCH_LAZY)) {
         $users[] = [
             'id' => $user['id'],
@@ -214,7 +114,7 @@ function getUsersPerPageFromDb(PDO $db, array $config, int $recordsOnPage, int $
             'password' => $user['password'],
             'token' => $user['token'],
             'status' => $user['status'],
-            'is_deleted' =>$user['is_deleted'],
+            'is_deleted' => $user['is_deleted'],
             'avatar' => $user['avatar'],
         ];
     }
@@ -223,7 +123,9 @@ function getUsersPerPageFromDb(PDO $db, array $config, int $recordsOnPage, int $
     return $users;
 }
 
-function getCountOfUsersFromDb(PDO $db, array $config){
+
+function getCountOfUsersFromDb(PDO $db, array $config)
+{
     $count = 0;
     $sql = "SELECT COUNT(*) as count FROM {$config['tablename']}";
     $stmt = $db->query($sql);
