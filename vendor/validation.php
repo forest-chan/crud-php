@@ -36,13 +36,8 @@ function isEmailValid(string $email): bool
 function isEmailUnique(string $email, array $config): bool
 {
     $db = connectToDb($config);
-    $user = getUserFromDbByEmail($db, $config, $email);
-
-    if (empty($user)) {
-        return true;
-    }
-
-    return false;
+    $user = getUserFromDb($db, $config, ['email' => $email]);
+    return empty($user);
 }
 
 function validateSingUpForm(array $form, array $config): array

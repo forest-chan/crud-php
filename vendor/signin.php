@@ -32,9 +32,9 @@ if (!empty($_POST)) {
             $_SESSION['message'] = $errors;
             header('location: /');
         } else {
-            $password = md5($password);
             $db = connectToDb($config);
-            $user = getUserFromDbByLogin($db, $config, $email, $password);
+            $form['password'] = md5($password);
+            $user = getUserFromDb($db, $config, $form);
 
             if (!empty($user) && $user['is_deleted'] === 0) {
                 $_SESSION["token"] = $user['token'];

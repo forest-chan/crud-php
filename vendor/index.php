@@ -9,9 +9,8 @@ $config = require 'config.php';
 $currentPage = 1;
 
 
-// when go back after view.php
-if (isset($_SESSION['userToView'])) {
-    unset($_SESSION['userToView']);
+if(isset($_SESSION['userInfo'])){
+    unset($_SESSION['userInfo']);
 }
 
 if (!empty($_GET)) {
@@ -35,6 +34,7 @@ $from = ($currentPage - 1) * $recordsOnPage;
 $db = connectToDb($config);
 $users = getUsersPerPageFromDb($db, $config, $recordsOnPage, $from);
 
+
 ?>
 
 
@@ -44,7 +44,7 @@ $users = getUsersPerPageFromDb($db, $config, $recordsOnPage, $from);
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Students</title>
+    <title>Users</title>
     <link>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
 </head>
@@ -71,9 +71,9 @@ $users = getUsersPerPageFromDb($db, $config, $recordsOnPage, $from);
                     <table class="table table-light table-striped">
                         <thead>
                             <tr>
+                                <th scope="col">№</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Name</th>
-                                <th scope="col">Password</th>
                                 <th scope="col">Operations</th>
                             </tr>
                         </thead>
@@ -81,13 +81,17 @@ $users = getUsersPerPageFromDb($db, $config, $recordsOnPage, $from);
                             <?php if (!empty($users)) { ?>
                                 <?php foreach ($users as $user) { ?>
                                     <tr>
+                                        <td><?php echo $user['id']; ?></td>
                                         <td><?php echo $user['email']; ?></td>
                                         <td><?php echo $user['name']; ?></td>
-                                        <td><?php echo $user['password']; ?></td>
                                         <td>
-                                            <a href="<?php echo "script.php?upd={$user['id']}"; ?>" class="btn btn-outline-dark">Update</a>
-                                            <a href="<?php echo "script.php?del={$user['id']}"; ?>" class="btn btn-outline-dark">Delete</a>
-                                            <a href="<?php echo "script.php?view={$user['id']}"; ?>" class="btn btn-outline-dark">View</a>
+                                            <?php if ($_SESSION['id'] != $user['id']) { ?>
+                                                <a href="<?php echo "script.php?del={$user['id']}"; ?>" class="btn btn-outline-dark">Delete</a>
+                                                <a href="<?php echo "script.php?view={$user['id']}"; ?>" class="btn btn-outline-dark">View</a>
+                                            <?php } else { ?>
+                                                <a href="" class="btn btn-outline-dark disabled">Delete<a>
+                                                        <a href="" class="btn btn-outline-dark disabled">View<a>
+                                                            <?php } ?>
                                         </td>
                                     </tr>
                                 <?php } ?>
@@ -148,20 +152,18 @@ $users = getUsersPerPageFromDb($db, $config, $recordsOnPage, $from);
                     <table class="table table-light table-striped">
                         <thead>
                             <tr>
+                                <th scope="col">№</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Name</th>
-                                <th scope="col">Operations</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($users)) { ?>
                                 <?php foreach ($users as $user) { ?>
                                     <tr>
+                                        <td><?php echo $user['id']; ?></td>
                                         <td><?php echo $user['email']; ?></td>
                                         <td><?php echo $user['name']; ?></td>
-                                        <td>
-                                            <a href="<?php echo "script.php?view={$user['id']}"; ?>" class="btn btn-outline-dark">View</a>
-                                        </td>
                                     </tr>
                                 <?php } ?>
                             <?php } ?>
